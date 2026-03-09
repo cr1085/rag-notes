@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Notas Inteligentes — Segundo Cerebro</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Supabase se carga vía ESM en los módulos JS -->
+</head>
+<body>
+
+<!-- ── ENV Config (editar estas variables) ─────────────────── -->
+<script>
+    window.ENV = {
+        SUPABASE_URL:  'https://TU_PROYECTO.supabase.co',
+        SUPABASE_ANON: 'TU_ANON_KEY_AQUI',
+    };
+</script>
+
+<!-- ── Toast Container ──────────────────────────────────────── -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ── Loading Overlay ──────────────────────────────────────── -->
+<div id="loading-overlay" class="overlay hidden" role="status">
+    <div class="overlay__box">
+        <div class="spinner"></div>
+        <p class="loading-message">Cargando...</p>
+    </div>
+</div>
+
+<!-- ── Progress Overlay (para indexación) ───────────────────── -->
+<div id="progress-overlay" class="overlay hidden" role="status">
+    <div class="overlay__box overlay__box--wide">
+        <h3>⚡ Indexando nota...</h3>
+        <div class="progress-track">
+            <div id="progress-fill" class="progress-fill" style="width:0%" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <p id="progress-message" class="progress-message">Iniciando...</p>
+        <p class="progress-hint">La primera vez descarga el modelo (~25MB). Se cachea automáticamente.</p>
+    </div>
+</div>
+
+<!-- ── Config Modal ─────────────────────────────────────────── -->
+<div id="config-modal" class="overlay hidden" role="dialog" aria-labelledby="config-title">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 id="config-title">⚙️ Configuración del LLM</h2>
+            <button id="config-close" class="btn-icon" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label for="cfg-provider">Proveedor</label>
+                <select id="cfg-provider" class="form-control">
+                    <option value="ollama">Ollama (local)</option>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="openai">OpenAI-compatible</option>
+                    <option value="custom">URL personalizada</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cfg-model">Modelo</label>
+                <input id="cfg-model" type="text" class="form-control"
+                       placeholder="llama3.2 / mistral / gpt-4o-mini" value="llama3.2" />
+                <small class="form-hint">Ollama: llama3.2, mistral | OpenRouter: mistralai/mistral-7b-instruct</small>
+            </div>
+            <div class="form-group">
+                <label for="cfg-baseurl">URL Base</label>
+                <input id="cfg-baseurl" type="text" class="form-control"
+                       placeholder="http://localhost:11434" value="http://localhost:11434" />
+            </div>
+            <div class="form-group">
+                <label for="cfg-apikey">API Key <span class="text-muted">(opcional para Ollama)</span></label>
+                <input id="cfg-apikey" type="password" class="form-control" placeholder="sk-..." />
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button id="config-save" class="btn btn--primary">💾 Guardar configuración</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- ── LAYOUT PRINCIPAL ─────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="app-layout">
+
+    <!-- ── Sidebar ──────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__brand">
+            <span class="brand-icon">🧠</span>
+            <div class="brand-text">
+                <h1>Notas RAG</h1>
+                <span class="brand-sub">Segundo Cerebro IA</span>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav" role="navigation">
+            <button class="nav-item active" data-nav="notes">
+                <span class="nav-icon">📋</span>
+                <span>Mis Notas</span>
+                <span id="notes-count" class="nav-badge">0</span>
+            </button>
+            <button class="nav-item" data-nav="search">
+                <span class="nav-icon">🔍</span>
+                <span>Buscar</span>
+            </button>
+            <button class="nav-item" data-nav="chat">
+                <span class="nav-icon">💬</span>
+                <span>Chat RAG</span>
+            </button>
+        </nav>
+
+        <div class="sidebar__footer">
+            <div id="model-status" class="model-status"></div>
+            <button id="btn-config" class="btn btn--ghost btn--sm btn--full">
+                ⚙️ Configurar LLM
+            </button>
+        </div>
+    </aside>
+
+    <!-- ── Contenido Principal ──────────────────────────────── -->
+    <main class="main-content">
+
+        <!-- ── Vista: Lista de Notas ──────────────────────── -->
+        <section id="view-notes" class="view">
+            <header class="view-header">
+                <div>
+                    <h2 class="view-title">📋 Mis Notas</h2>
+                    <p class="view-subtitle">Organiza y gestiona tu base de conocimiento</p>
+                </div>
+                <button id="btn-new-note" class="btn btn--primary">
+                    + Nueva Nota
+                </button>
+            </header>
+            <div id="notes-list" class="notes-grid">
+                <!-- Las notas se renderizan aquí por JS -->
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <p>Cargando notas...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Vista: Editor ───────────────────────────────── -->
+        <section id="view-editor" class="view hidden">
+            <div id="editor-container">
+                <!-- El editor se renderiza aquí por JS -->
+            </div>
+        </section>
+
+        <!-- ── Vista: Búsqueda ─────────────────────────────── -->
+        <section id="view-search" class="view hidden">
+            <header class="view-header">
+                <div>
+                    <h2 class="view-title">🔍 Búsqueda Semántica</h2>
+                    <p class="view-subtitle">Encuentra notas por significado, no solo por palabras</p>
+                </div>
+            </header>
+
+            <div class="search-bar-container">
+                <div class="search-bar">
+                    <span class="search-bar__icon">🔍</span>
+                    <input
+                        id="search-input"
+                        type="text"
+                        class="search-bar__input"
+                        placeholder="Busca por conceptos, ideas, temas..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                </div>
+                <p class="search-hint">La búsqueda semántica entiende el significado. Prueba: "ideas sobre productividad"</p>
+            </div>
+
+            <div id="search-results" class="search-results">
+                <p class="text-muted text-center">Escribe para buscar en tus notas...</p>
+            </div>
+        </section>
+
+        <!-- ── Vista: Chat RAG ─────────────────────────────── -->
+        <section id="view-chat" class="view hidden">
+            <div class="chat-layout">
+
+                <!-- Panel de historial -->
+                <aside class="chat-history-panel">
+                    <h3 class="panel-title">💬 Historial</h3>
+                    <div id="chat-history" class="chat-history">
+                        <p class="text-muted text-sm">Sin preguntas recientes</p>
+                    </div>
+                </aside>
+
+                <!-- Panel de chat -->
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <h2>🧠 Chat con tus Notas</h2>
+                        <p class="text-muted text-sm">Haz preguntas sobre el contenido de tus notas indexadas</p>
+                    </div>
+
+                    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite">
+                        <div class="chat-welcome">
+                            <div class="chat-welcome__icon">🧠</div>
+                            <h3>¿Qué quieres saber?</h3>
+                            <p>Haz una pregunta sobre tus notas. El sistema buscará información relevante y generará una respuesta.</p>
+                            <div class="chat-suggestions">
+                                <p class="text-muted text-sm">Ejemplos:</p>
+                                <button class="suggestion-btn" onclick="document.getElementById('chat-input').value=this.textContent.trim()">
+                                    ¿Qué es RAG y cómo funciona?
+                                </button>
+                                <button class="suggestion-btn" onclick="document.getElementById('chat-input').value=this.textContent.trim()">
+                                    Resume las ideas principales de mis notas
+                                </button>
+                                <button class="suggestion-btn" onclick="document.getElementById('chat-input').value=this.textContent.trim()">
+                                    ¿Qué tecnologías menciono en mis notas?
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <div class="chat-input-row">
+                            <textarea
+                                id="chat-input"
+                                class="chat-textarea"
+                                placeholder="Escribe tu pregunta... (Enter para enviar, Shift+Enter para nueva línea)"
+                                rows="2"
+                            ></textarea>
+                            <button id="chat-send" class="btn btn--primary btn--chat-send">
+                                <span>Enviar</span>
+                                <span class="send-icon">↑</span>
+                            </button>
+                        </div>
+                        <p class="chat-disclaimer">
+                            💡 Asegúrate de tener notas indexadas y el LLM configurado antes de chatear.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ── Scripts (ES Modules) ──────────────────────────────────── -->
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
