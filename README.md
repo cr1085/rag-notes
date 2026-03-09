@@ -127,16 +127,6 @@ rag-notas-inteligentes/
 ---
 
 
-## 🤝 Contribuir
-
-1. Fork el repositorio
-2. Crear una rama: `git checkout -b feature/mi-feature`
-3. Hacer commits descriptivos
-4. Abrir un Pull Request
-
-Ver `docs/onboarding_pasantes.md` para tareas disponibles y guías de estilo.
-
----
 
 ## License
 
