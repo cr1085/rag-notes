@@ -36,13 +36,6 @@
 
 ---
 
-## Instalación y Configuración
-
-### Prerequisitos
-- Cuenta gratuita en [supabase.com](https://supabase.com)
-- Navegador moderno (Chrome 90+, Firefox 90+, Safari 15+)
-- [Ollama](https://ollama.ai) instalado (opcional, para LLM local)
-
 ### 1. Clonar el repositorio
 
 ```bash
