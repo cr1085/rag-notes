@@ -9,14 +9,14 @@
 
 ---
 
-## ✨ Características
+##  Características
 
-- 📝 **Gestión de notas** — Crear, editar, eliminar y organizar notas con tags
-- ⚡ **Indexación automática** — Chunking + embeddings generados directamente en el navegador (sin API de pago)
-- 🔍 **Búsqueda semántica** — Encuentra notas por significado, no solo por palabras exactas
-- 💬 **Chat RAG** — Haz preguntas y recibe respuestas basadas en tus notas
-- 🔒 **Open-source first** — Todos los modelos son gratuitos y open-source
-- 🏠 **Funciona local** — Compatible con Ollama para LLM completamente offline
+-  **Gestión de notas** — Crear, editar, eliminar y organizar notas con tags
+-  **Indexación automática** — Chunking + embeddings generados directamente en el navegador (sin API de pago)
+-  **Búsqueda semántica** — Encuentra notas por significado, no solo por palabras exactas
+-  **Chat RAG** — Haz preguntas y recibe respuestas basadas en tus notas
+-  **Open-source first** — Todos los modelos son gratuitos y open-source
+-  **Funciona local** — Compatible con Ollama para LLM completamente offline
 
 ---
 
@@ -33,7 +33,7 @@
 
 ---
 
-## 🚀 Instalación y Configuración
+## Instalación y Configuración
 
 ### Prerequisitos
 - Cuenta gratuita en [supabase.com](https://supabase.com)
@@ -95,7 +95,7 @@ Abrir en el navegador: `http://localhost:3000`
 
 ---
 
-## 🤖 Configurar el LLM
+##  Configurar el LLM
 
 ### Opción A: Ollama (local, recomendado)
 
@@ -130,19 +130,19 @@ Configurar URL base y API key según el proveedor.
 ## 📖 Cómo usar el sistema RAG
 
 ### 1. Crear y indexar notas
-1. Ir a **📋 Mis Notas** → clic en **+ Nueva Nota**
+1. Ir a **Mis Notas** → clic en **+ Nueva Nota**
 2. Escribir un título y contenido detallado
 3. Guardar la nota
-4. Hacer clic en **⚡ Procesar/Indexar**
+4. Hacer clic en **Procesar/Indexar**
 5. Esperar que el modelo descargue (~30s primera vez) y procese la nota
 
 ### 2. Buscar semánticamente
-1. Ir a **🔍 Buscar**
+1. Ir a **Buscar**
 2. Escribir una búsqueda (no necesita ser literal)
 3. Los resultados muestran el porcentaje de relevancia
 
 ### 3. Chatear con tus notas
-1. Ir a **💬 Chat RAG**
+1. Ir a **Chat RAG**
 2. Verificar que el LLM esté configurado (⚙️)
 3. Hacer una pregunta sobre el contenido de tus notas
 4. El sistema busca chunks relevantes y genera una respuesta con fuentes
